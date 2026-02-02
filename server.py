@@ -183,7 +183,7 @@ class Handler(BaseHTTPRequestHandler):
                     "GET  /admin/users (admin only)"
                 ]
             })
-
+# fhbf
         if path == "/me":
             token = self.get_token_from_headers()
             user = get_user_by_token(token)
