@@ -139,6 +139,20 @@ def get_user_by_token(token: str):
         "last_name": last_name,
         "role": role
     }
+def require_login(handler):
+    token = handler.get_token_from_headers()
+    user = get_user_by_token(token)
+    if not user:
+        handler.send_json(401, {"error": "Unauthorized"})
+        return None
+    return user
+
+
+def require_admin(handler, user):
+    if user["role"] != "admin":
+        handler.send_json(403, {"error": "Forbidden (admin only)"})
+        return False
+    return True
 
 
 # HTTP helper
@@ -192,13 +206,12 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(200, {"user": user})
 
         if path == "/admin/users":
-            token = self.get_token_from_headers()
-            user = get_user_by_token(token)
+            user = require_login(self)
             if not user:
-                return self.send_json(401, {"error": "Unauthorized"})
+                return
 
-            if user["role"] != "admin":
-                return self.send_json(403, {"error": "Forbidden (admin only)"})
+            if not require_admin(self, user):
+                return
 
             con = db_connect()
             cur = con.cursor()
@@ -217,6 +230,19 @@ class Handler(BaseHTTPRequestHandler):
                 })
             return self.send_json(200, {"users": users})
 
+        if path == "/secret":
+            user = require_login(self)
+            if not user:
+                return
+            return self.send_json(200, {"message": f"Hello, {user['login']}! You are logged in."})
+
+        if path == "/admin/secret":
+            user = require_login(self)
+            if not user:
+                return
+            if not require_admin(self, user):
+                return
+            return self.send_json(200, {"message": "Top secret admin stuff."})
 
         return self.send_json(404, {"error": "Not found"})
 
