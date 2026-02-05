@@ -99,7 +99,6 @@ def on_me():
     status, data = api_call("GET", "/me", token=TOKEN)
     set_output(out, {"status": status, "response": data})
 
-
 def on_admin_users():
     if not TOKEN:
         messagebox.showwarning("Admin", "Login first (admin).")
