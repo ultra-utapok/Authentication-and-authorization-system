@@ -316,6 +316,7 @@ class Handler(BaseHTTPRequestHandler):
                 }
             })
 
+        # Выход
         if path == "/logout":
             token = self.get_token_from_headers()
             if not token:
